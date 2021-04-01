@@ -5,6 +5,7 @@ from django.views import View
 import os
 import json
 from datetime import datetime
+from django.utils.datastructures import MultiValueDictKeyError
 
 
 
@@ -42,22 +43,42 @@ def get_json_item(link=9234732):
 class HomeView(View):
     def get(self, request, *args, **kwargs):
 
-        return render(
-            request,
-            'index.html',
-            context={'bingo': bingo}
-        )
+        return redirect('/news/')
 
 
 class newsMain(View):
     def get(self, request, *args, **kwargs):
-
-
         json_list = json.load(open(JSON_PATH, 'r'))
-        sorted_json_list = get_sorted_json(json_list)
+        found = False
+
+        # ** test code **
+        found_titles = []
+
+        try:
+
+            search_string = request.GET['q']
+            for item in json_list:
+
+                search_results = re.findall(search_string.lower().strip().replace(' ', ''),
+                                            item['title'].lower().strip().replace(' ', ''))
 
 
+                if len(search_results) > 0:
+                    found_titles.append(item)
+                    found = True
 
+        # ** end test code **
+
+        except MultiValueDictKeyError:
+            print('crashed')
+
+        if found:
+            sorted_json_list = get_sorted_json(found_titles)
+        else:
+            sorted_json_list = get_sorted_json(json_list)
+
+
+        # will need to add condition here on which list to send.
         return render(request,
                       'news_main.html',
                       context={'sorted_json_list': sorted_json_list})
@@ -89,6 +110,7 @@ class createView(View):
     title = ''
     body = ''
     def get(self, request, *args, **kwargs):
+
         return render(request,
                       'CreateNews.html',
                       context={"title": self.title,

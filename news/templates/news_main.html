@@ -13,6 +13,9 @@
     </ul>
 
 {% endfor %}
-
+<form action="/news/" method="get">{% csrf_token %}
+    <input type="text" name="q">
+    <button type="submit">Search</button>
+</form>
 
 <a target="_blank" target="_blank" href="/news/create/">main</a>
